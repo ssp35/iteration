@@ -11,11 +11,12 @@ x_vec <- rnorm(30, mean = 5, sd = 3)
 (x_vec - mean(x_vec))/sd(x_vec)
 ```
 
-    ##  [1] -1.39486358 -0.83166048  0.02090035 -0.81092627  0.49770141 -0.85050066
-    ##  [7]  0.69354458  0.74701912 -0.20771855 -0.21751688 -0.29956229 -1.65633812
-    ## [13] -0.24133062 -0.78556643  0.94260933 -1.08378322 -1.06297075  0.93654563
-    ## [19]  1.14930306  1.27707074  0.05694463  2.16474084 -0.52208986 -1.65705944
-    ## [25]  0.21243110  1.02249789  1.17244679 -1.10400769  0.87490511  0.95723427
+    ##  [1]  1.206456555  0.236860319  0.804831399  0.175780206  0.539520418
+    ##  [6] -0.032907419 -1.029833394 -0.733779160  1.616720205 -0.728758744
+    ## [11]  1.864781735  0.211408134  1.046250044 -2.820515723 -0.710072028
+    ## [16]  0.273408774 -0.364901046 -0.004785173 -0.644533165  1.166282664
+    ## [21] -0.015305018  1.456791747  0.431139039 -0.957870171 -0.739739539
+    ## [26] -0.147491691 -1.101356303 -1.197078665  0.455223748 -0.256527750
 
 I want a function to compute z-scores.
 
@@ -37,11 +38,12 @@ z_scores <- function(x) {
 z_scores(x_vec)
 ```
 
-    ##  [1] -1.39486358 -0.83166048  0.02090035 -0.81092627  0.49770141 -0.85050066
-    ##  [7]  0.69354458  0.74701912 -0.20771855 -0.21751688 -0.29956229 -1.65633812
-    ## [13] -0.24133062 -0.78556643  0.94260933 -1.08378322 -1.06297075  0.93654563
-    ## [19]  1.14930306  1.27707074  0.05694463  2.16474084 -0.52208986 -1.65705944
-    ## [25]  0.21243110  1.02249789  1.17244679 -1.10400769  0.87490511  0.95723427
+    ##  [1]  1.206456555  0.236860319  0.804831399  0.175780206  0.539520418
+    ##  [6] -0.032907419 -1.029833394 -0.733779160  1.616720205 -0.728758744
+    ## [11]  1.864781735  0.211408134  1.046250044 -2.820515723 -0.710072028
+    ## [16]  0.273408774 -0.364901046 -0.004785173 -0.644533165  1.166282664
+    ## [21] -0.015305018  1.456791747  0.431139039 -0.957870171 -0.739739539
+    ## [26] -0.147491691 -1.101356303 -1.197078665  0.455223748 -0.256527750
 
 Try the function on some other things. These should give errors.
 
@@ -101,7 +103,7 @@ mean_and_sd(x_vec)
     ## # A tibble: 1 × 2
     ##    mean    sd
     ##   <dbl> <dbl>
-    ## 1  2.94  3.94
+    ## 1  2.90  3.99
 
 ## Multiple inputs
 
@@ -123,7 +125,7 @@ sim_data %>%
     ## # A tibble: 1 × 2
     ##    mean    sd
     ##   <dbl> <dbl>
-    ## 1  3.35  2.98
+    ## 1  3.88  3.09
 
 ``` r
 sim_mean_sd <- function(samp_size, mu = 3, sigma = 4) {
@@ -145,7 +147,7 @@ sim_mean_sd(100, 6, 3)
     ## # A tibble: 1 × 2
     ##    mean    sd
     ##   <dbl> <dbl>
-    ## 1  5.76  2.99
+    ## 1  5.54  3.07
 
 ``` r
 sim_mean_sd(mu = 6, samp_size = 100, sigma = 3)
@@ -154,7 +156,7 @@ sim_mean_sd(mu = 6, samp_size = 100, sigma = 3)
     ## # A tibble: 1 × 2
     ##    mean    sd
     ##   <dbl> <dbl>
-    ## 1  5.82  3.12
+    ## 1  5.71  2.86
 
 ``` r
 sim_mean_sd(100)
@@ -163,4 +165,144 @@ sim_mean_sd(100)
     ## # A tibble: 1 × 2
     ##    mean    sd
     ##   <dbl> <dbl>
-    ## 1  2.81  3.93
+    ## 1  3.47  3.98
+
+## Let’s review Napoleon Dynamite
+
+``` r
+url <-  "https://www.amazon.com/product-reviews/B00005JNBQ/ref=cm_cr_arp_d_viewopt_rvwer?ie=UTF8&reviewerType=avp_only_reviews&sortBy=recent&pageNumber=1"
+
+dynamite_html <-  read_html(url)
+
+review_titles <-  
+  dynamite_html %>%
+  html_nodes(".a-text-bold span") %>%
+  html_text()
+
+review_stars <-  
+  dynamite_html %>%
+  html_nodes("#cm_cr-review_list .review-rating") %>%
+  html_text() %>%
+  str_extract("^\\d") %>%
+  as.numeric()
+
+review_text <-  
+  dynamite_html %>%
+  html_nodes(".review-text-content span") %>%
+  html_text() %>% 
+  str_replace_all("\n", "") %>% 
+  str_trim()
+
+reviews_page1 <-  tibble(
+  title = review_titles,
+  stars = review_stars,
+  text = review_text
+)
+```
+
+What about the next page of reviews?
+
+``` r
+url <-  "https://www.amazon.com/product-reviews/B00005JNBQ/ref=cm_cr_arp_d_viewopt_rvwer?ie=UTF8&reviewerType=avp_only_reviews&sortBy=recent&pageNumber=2"
+
+dynamite_html <- read_html(url)
+
+review_titles <-  
+  dynamite_html %>%
+  html_nodes(".a-text-bold span") %>%
+  html_text()
+
+review_stars <-  
+  dynamite_html %>%
+  html_nodes("#cm_cr-review_list .review-rating") %>%
+  html_text() %>%
+  str_extract("^\\d") %>%
+  as.numeric()
+
+review_text <-  
+  dynamite_html %>%
+  html_nodes(".review-text-content span") %>%
+  html_text() %>% 
+  str_replace_all("\n", "") %>% 
+  str_trim()
+
+reviews_page2 <- tibble(
+  title = review_titles,
+  stars = review_stars,
+  text = review_text
+)
+```
+
+Let’s turn that code into a function.
+
+``` r
+read_page_reviews <- function(url) {
+  html = read_html(url)
+
+  review_titles <-  
+    html %>%
+    html_nodes(".a-text-bold span") %>%
+    html_text()
+
+  review_stars <-  
+    html %>%
+    html_nodes("#cm_cr-review_list .review-rating") %>%
+    html_text() %>%
+    str_extract("^\\d") %>%
+    as.numeric()
+
+  review_text <-  
+    html %>%
+    html_nodes(".review-text-content span") %>%
+    html_text() %>% 
+    str_replace_all("\n", "") %>% 
+    str_trim()
+
+  reviews <- tibble(
+    title = review_titles,
+    stars = review_stars,
+    text = review_text
+  )
+  
+  reviews
+}
+```
+
+Try the function.
+
+``` r
+dynamite_url <- "https://www.amazon.com/product-reviews/B00005JNBQ/ref=cm_cr_arp_d_viewopt_rvwer?ie=UTF8&reviewerType=avp_only_reviews&sortBy=recent&pageNumber=9"
+
+read_page_reviews(dynamite_url)
+```
+
+    ## # A tibble: 10 × 3
+    ##    title                                       stars text                       
+    ##    <chr>                                       <dbl> <chr>                      
+    ##  1 Feed Tina!!                                     5 "Great movie"              
+    ##  2 Soooo funny                                     5 "I love this movie."       
+    ##  3 Making Memories!!!                              5 "My grandson has never see…
+    ##  4 Such a fun movie!!                              5 "Such a fun movie! We watc…
+    ##  5 Funny movie about growing up in the midwest     5 "Love this movie, glad to …
+    ##  6 Can’t stop laughing when watching it.           5 "My favorite show for a go…
+    ##  7 Love it                                         5 "This film is gold."       
+    ##  8 Funny                                           4 "Probably not all people a…
+    ##  9 One of my favorite movies!                      5 "One of my favorite movies…
+    ## 10 Wonderful                                       5 "Was funny when it came ou…
+
+Let’s read a few pages of reviews.
+
+``` r
+dynamite_url_base <- "https://www.amazon.com/product-reviews/B00005JNBQ/ref=cm_cr_arp_d_viewopt_rvwer?ie=UTF8&reviewerType=avp_only_reviews&sortBy=recent&pageNumber="
+
+dynamite_urls <-  str_c(dynamite_url_base, 1:5)
+
+dynamite_reviews <- 
+  bind_rows(
+    read_page_reviews(dynamite_urls[1]),
+    read_page_reviews(dynamite_urls[2]),
+    read_page_reviews(dynamite_urls[3]),
+    read_page_reviews(dynamite_urls[4]),
+    read_page_reviews(dynamite_urls[5])
+  )
+```
